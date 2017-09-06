@@ -1,25 +1,16 @@
-/*
-Definition and options.
-*/
-const driver = require('./lib/driver'),
-      EHR = require('./lib/EHR'),
-      webdriver = require('selenium-webdriver'),
-      By = webdriver.By,
-      until = webdriver.until,
-      Key = webdriver.Key,
-      Button = webdriver.Button,
+const cps = require('./lib/cps'),
+      elements = require('./lib/elements'),
       testLink = 'https://foo3.clinicomp.com/webframe/index.php/cps';
 
+let cps01 = new cps('cef', testLink)
+
 // open test link with browser
-driver.get(testLink);
+cps01.actions.openUrl(testLink);
 
 // login
 EHR.Steps.Login(driver)
-//driver.executeScript("alert('hello world');")
 
 //go to Reports >> User preferences
-EHR.Actions.Click(driver, 'REPORTS')
-EHR.Actions.Click(driver, 'User Preferences')
-EHR.Actions.Click(driver, 'All PreferenceSet')
-
-//let node_AllPreSet = driver.wait(until.elementLocated(By.xpath("//span[text()='All PreferenceSet']/..")), 5000);
+EHR.actions.click(elements.sideBar.reports)
+EHR.actions.click(elements.userPreferences.tab)
+EHR.actions.click(elements.userPreferences.treeNode)
