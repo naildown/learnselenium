@@ -20,20 +20,6 @@ function errLog(err) {
     console.error(err.name + ' : ' + err.message);
 }
 
-function allElementloaded() {
-  console.log('call allElementloaded')
-  return new Condition('all elements are loaded', function() {
-    return driver.executeScript(script).then(function (preCount) {
-      console.log('preCount = ' + preCount)
-      driver.sleep(500)
-      driver.executeScript(script).then(function (curCount) {
-        console.log('curCount = ' + curCount)
-        return curCount === preCount
-      })
-    })
-  })
-}
-
 /**
  * Define the basic actions
  */
@@ -44,10 +30,21 @@ let actions = {
     driver.wait(until.elementLocated(locator), 30000).click(opt_button).catch(errLog);
   },
 
-  test : function(locator, opt_button) {
-    driver.wait(allElementloaded).then(
-      driver.actions().click(driver.findElement(locator), opt_button).perform().catch(errLog)
-    )
+  test : function test(locator, opt_button, count) {
+    let preCount = count || 0
+    console.log('call test, preCount = ' + preCount)
+    driver.sleep(500)
+    driver.executeScript(script).then(curCount => {
+      console.log('find divs, curCount = ' + curCount)
+      if (curCount && curCount === preCount) {
+        driver.actions()
+        .click(driver.findElement(locator), opt_button)
+        .perform()
+        .catch(errLog)
+      } else {
+        test(locator, opt_button, curCount)
+      }
+    })
   },
 
   doubleClick : function (locator, opt_button) {
@@ -83,7 +80,7 @@ let steps = {
 /**
  * Run test
  */
-driver.get('https://foo3.clinicomp.com/webframe/index.php/Cps')
+driver.get('https://foo8.clinicomp.com/webframe/index.php/Cps')
 driver.manage().window().maximize()
 steps.login()
 actions.test(elements.sideBar.reports)
