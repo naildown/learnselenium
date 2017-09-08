@@ -9,6 +9,8 @@ const webdriver = require('selenium-webdriver'),
       By = webdriver.By,
       until = webdriver.until,
       Key = webdriver.Key,
+      script = "return document.getElementsByTagName('div').length",
+      Condition = webdriver.Condition,
       Button = webdriver.Button;
 
 /**
@@ -18,14 +20,34 @@ function errLog(err) {
     console.error(err.name + ' : ' + err.message);
 }
 
+function allElementloaded() {
+  console.log('call allElementloaded')
+  return new Condition('all elements are loaded', function() {
+    return driver.executeScript(script).then(function (preCount) {
+      console.log('preCount = ' + preCount)
+      driver.sleep(500)
+      driver.executeScript(script).then(function (curCount) {
+        console.log('curCount = ' + curCount)
+        return curCount === preCount
+      })
+    })
+  })
+}
+
 /**
  * Define the basic actions
  */
 let actions = {
-  click : function (locator, opt_button) {
+  click : function(locator, opt_button) {
     let loadMask = driver.wait(until.elementLocated(By.xpath("//div[text()='Loading ...']")), 50000);
     driver.wait(until.stalenessOf(loadMask)).then(c => console.log('loadMask is staleness, click ++' + c));
     driver.wait(until.elementLocated(locator), 30000).click(opt_button).catch(errLog);
+  },
+
+  test : function(locator, opt_button) {
+    driver.wait(allElementloaded).then(
+      driver.actions().click(driver.findElement(locator), opt_button).perform().catch(errLog)
+    )
   },
 
   doubleClick : function (locator, opt_button) {
@@ -35,7 +57,7 @@ let actions = {
     driver.actions().doubleClick(el, opt_button).perform().catch(errLog);
   },
 
-  input : function (locator, keys) {
+  input : function(locator, keys) {
     let loadMask = driver.wait(until.elementLocated(By.xpath("//div[text()='Loading ...']")), 30000);
     driver.wait(until.stalenessOf(loadMask)).then(c => console.log('loadMask is staleness, input ++' + c));
     driver.wait(until.elementLocated(locator), 30000).sendKeys(keys).catch(errLog);
@@ -64,7 +86,6 @@ let steps = {
 driver.get('https://foo3.clinicomp.com/webframe/index.php/Cps')
 driver.manage().window().maximize()
 steps.login()
-actions.click(elements.sideBar.reports)
-actions.click(elements.userPreferences.tab)
-actions.doubleClick(elements.userPreferences.treeNode.allPreferenceSet)
-actions.click(elements.userPreferences.treeNode.base, Button.RIGHT)
+actions.test(elements.sideBar.reports)
+actions.test(elements.tab.userPref)
+actions.doubleClick(elements.userPref.tree_AllPrefSet)
