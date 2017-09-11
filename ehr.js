@@ -13,6 +13,8 @@ const webdriver = require('selenium-webdriver'),
       Condition = webdriver.Condition,
       Button = webdriver.Button;
 
+const waitTime = 500;
+
 /**
  * Define common tools
  */
@@ -24,40 +26,52 @@ function errLog(err) {
  * Define the basic actions
  */
 let actions = {
-  click : function(locator, opt_button) {
-    let loadMask = driver.wait(until.elementLocated(By.xpath("//div[text()='Loading ...']")), 50000);
-    driver.wait(until.stalenessOf(loadMask)).then(c => console.log('loadMask is staleness, click ++' + c));
-    driver.wait(until.elementLocated(locator), 30000).click(opt_button).catch(errLog);
-  },
 
-  test : function test(locator, opt_button, count) {
+  click : function click(locator, opt_button, count) {
     let preCount = count || 0
     console.log('call test, preCount = ' + preCount)
-    driver.sleep(500)
+    driver.sleep(waitTime)
     driver.executeScript(script).then(curCount => {
       console.log('find divs, curCount = ' + curCount)
       if (curCount && curCount === preCount) {
         driver.actions()
-        .click(driver.findElement(locator), opt_button)
+        .click(driver.wait(until.elementLocated(locator), 30000), opt_button)
         .perform()
         .catch(errLog)
       } else {
-        test(locator, opt_button, curCount)
+        click(locator, opt_button, curCount)
       }
     })
   },
 
-  doubleClick : function (locator, opt_button) {
-    let loadMask = driver.wait(until.elementLocated(By.xpath("//div[text()='Loading ...']")), 30000);
-    driver.wait(until.stalenessOf(loadMask)).then(c => console.log('loadMask is staleness, doubleclick ++' + c));
-    let el = driver.wait(until.elementLocated(locator), 30000);
-    driver.actions().doubleClick(el, opt_button).perform().catch(errLog);
+  doubleClick : function doubleClick(locator, opt_button, count) {
+    let preCount = count || 0
+    console.log('call test, preCount = ' + preCount)
+    driver.sleep(waitTime)
+    driver.executeScript(script).then(curCount => {
+      console.log('find divs, curCount = ' + curCount)
+      if (curCount && curCount === preCount) {
+        driver.actions()
+        .doubleClick(driver.wait(until.elementLocated(locator), 30000), opt_button)
+        .perform()
+        .catch(errLog)
+      } else {
+        doubleClick(locator, opt_button, curCount)
+      }
+    })
   },
 
-  input : function(locator, keys) {
-    let loadMask = driver.wait(until.elementLocated(By.xpath("//div[text()='Loading ...']")), 30000);
-    driver.wait(until.stalenessOf(loadMask)).then(c => console.log('loadMask is staleness, input ++' + c));
-    driver.wait(until.elementLocated(locator), 30000).sendKeys(keys).catch(errLog);
+  sendKeys : function sendKeys(locator, keys, count) {
+    let preCount = count || 0
+    driver.sleep(waitTime)
+    driver.executeScript(script).then(curCount => {
+      console.log('preCount = %d, curCount = %d.', preCount, curCount)
+      if (curCount && curCount === preCount) {
+        driver.wait(until.elementLocated(locator), 30000).sendKeys(keys).catch(errLog)
+      } else {
+        sendKeys(locator, keys, curCount)
+      }
+    })
   }
 }
 
@@ -66,6 +80,18 @@ let actions = {
  */
 let steps = {
   login : function (){
+    // click OK in the Warning popup  
+    driver.wait(until.elementLocated(elements.login.btn_OK), 1000).click().catch(err => errLog(err))
+    // select Uaername/Password Login if needed.
+    driver.findElement(elements.login.btn_UserLogin).click().catch(err => errLog(err))
+    // input username and password, then login.
+    driver.findElement(elements.login.input_Username).sendKeys('demo')
+    driver.findElement(elements.login.input_Password).sendKeys('123')
+    driver.findElement(elements.login.btn_Login).click()
+    driver.wait(until.elementLocated(elements.patCtrl.grid_PatSele), 50000)
+  },
+
+  login1 : function (){
     // click OK in the Warning popup  
     driver.wait(until.elementLocated(elements.login.btn_OK), 1000).click().catch(err => errLog(err))
     // select Uaername/Password Login if needed.
@@ -83,6 +109,15 @@ let steps = {
 driver.get('https://foo8.clinicomp.com/webframe/index.php/Cps')
 driver.manage().window().maximize()
 steps.login()
-actions.test(elements.sideBar.reports)
-actions.test(elements.tab.userPref)
+actions.click(elements.sideBar.reports)
+actions.click(elements.tab.userPref)
 actions.doubleClick(elements.userPref.tree_AllPrefSet)
+actions.click(elements.userPref.tree_Base, Button.RIGHT)
+actions.click(elements.userPref.menu_ClonePrefSet)
+actions.sendKeys(elements.userPref.input_NewPrefName, 'test02')
+actions.click(elements.userPref.btn_Clone)
+actions.click(elements.userPref.menu_Restore)
+actions.click(elements.userPref.btn_OK)
+actions.click(elements.userPref.tree_test02, Button.RIGHT)
+actions.click(elements.userPref.menu_Delete)
+actions.click(elements.userPref.btn_OK)
