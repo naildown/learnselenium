@@ -4,7 +4,7 @@
  * Definition and settings
  */
 const webdriver = require('selenium-webdriver'),
-      driver = require('./lib/driver').build('chrome'),
+      driver = require('./lib/driver').build('cef'),
       elements = require('./lib/elements'),
       By = webdriver.By,
       until = webdriver.until,
