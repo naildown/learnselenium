@@ -8,7 +8,8 @@ const {By, until, Condition, Key, Button} = require('selenium-webdriver'),
       elements = require('./lib/elements'),
       assert = require('assert'),
       chai = require('chai'),
-      chaiAsPromised = require("chai-as-promised")
+      chaiAsPromised = require("chai-as-promised"),
+      testLink = 'https://foo6.clinicomp.com/webframe/index.php/Cps'
         
 chai.use(chaiAsPromised)
 let expect = chai.expect,
@@ -66,7 +67,7 @@ describe('Test 01', function() {
     this.timeout(0)
 
     before(function() {
-        return driver.get('https://foo3.clinicomp.com/webframe/index.php/Cps')
+        return driver.get(testLink)
     })
 
     beforeEach(function() {
@@ -78,26 +79,26 @@ describe('Test 01', function() {
     })
 
     it('Login with incorrect password.', function() {
-        steps.Login('dstest', '123')
+        steps.Login('dstest', '123123123')
         return driver.wait(until.elementsLocated(elements.login.dlg_LogonFailed), 5000)
             .should.be.fulfilled;
     })
 
     it('Login with correct password.', function() {
         steps.Login('demo', '123')
-        return driver.wait(until.urlIs('https://foo3.clinicomp.com/webframe/index.php/Cps'), 15000)
+        return driver.wait(until.urlIs(testLink), 15000)
             .should.be.fulfilled
     })
 
     it('Admit a new patient.', function() {
         driver.wait(until.elementLocated(elements.patCtrl.grid_PatSelection))
         steps.SelectUnit('MSI')
-        steps.AdmitPat('dstest0925f', 'dstest', '0925f', 'dstest0925f')
+        steps.AdmitPat('dstest0925a', 'dstest', '0925a', 'dstest0925a')
         steps.Validate(0, '123')
         driver.wait(until.elementLocated(elements.prompt.lbl_AdmitOK), 5000)
             .should.be.fulfilled
         driver.findElement(elements.prompt.btn_AdmitOK).click().catch(errLog)
-        return driver.wait(until.elementsLocated(elements.patCtrl.grid_Focused('dstest, 0925f')), 10000)
+        return driver.wait(until.elementsLocated(elements.patCtrl.grid_Focused('dstest, 0925a')), 10000)
             .should.be.fulfilled
     })
 })
